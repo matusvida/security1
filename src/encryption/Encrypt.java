@@ -9,8 +9,6 @@ import javax.crypto.SecretKey;
  */
 public class Encrypt{
 
-
-
     public Encrypt() throws Exception{
 
     }

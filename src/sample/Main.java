@@ -10,22 +10,32 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Main extends Application {
 
+    private Desktop desktop = Desktop.getDesktop();
+
     @Override
-    public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(getClass().getResource("sample.fxml"));
+    public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Encrypt/Decrypt tool");
-
-
         Button encryptBtn, decryptBtn;
         GridPane grid;
+        FileChooser fileChooser;
 
         grid = new GridPane();
         encryptBtn = new Button("Encrypt file");
         decryptBtn = new Button("Decrypt file");
+        fileChooser = new FileChooser();
+        fileChooser.setTitle("Open file to encrypt");
 
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(20);
@@ -42,6 +52,9 @@ public class Main extends Application {
         encryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                String filePath;
+                File file = fileChooser.showOpenDialog(primaryStage);
+                filePath = file.getAbsolutePath();
 
             }
         });
