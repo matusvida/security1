@@ -1,5 +1,6 @@
 package sample;
 
+import encryption.Encrypt;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -13,6 +14,9 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -48,13 +52,23 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(grid, 300, 275));
         primaryStage.show();
 
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        SecretKey key = keyGenerator.generateKey();
+        Cipher cipher = Cipher.getInstance("AES");
 
         encryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                String filePath;
+                String inputFilePath;
+                String outputFilePath;
                 File file = fileChooser.showOpenDialog(primaryStage);
-                filePath = file.getAbsolutePath();
+                inputFilePath = file.getAbsolutePath();
+
+                try {
+                    Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
             }
         });
@@ -62,7 +76,16 @@ public class Main extends Application {
         decryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                String inputFilePath;
+                String outputFilePath;
+                File file = fileChooser.showOpenDialog(primaryStage);
+                inputFilePath = file.getAbsolutePath();
 
+                try {
+                    Encrypt.encrypt(Cipher.DECRYPT_MODE, file, key);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
