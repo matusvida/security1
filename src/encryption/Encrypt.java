@@ -6,6 +6,11 @@ import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 
 /**
  * Created by matus.vida on 20. 10. 2015.
@@ -44,6 +49,20 @@ public class Encrypt{
             byte[] outputBytes = cipher.doFinal(inputBytes);
             FileOutputStream outputStream = new FileOutputStream(outputFile);
             outputStream.write(outputBytes);
+
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            try (InputStream is = Files.newInputStream(Paths.get(inputFile.getAbsolutePath()))){
+                DigestInputStream dis = new DigestInputStream(is, md);
+            }
+
+            byte[] digest = md.digest();
+
+            StringBuffer sb = new StringBuffer("");
+            for (int i = 0; i < digest.length; i++) {
+                sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+            }
+
+                System.out.println(sb.toString());
 
             inputStream.close();
             outputStream.close();

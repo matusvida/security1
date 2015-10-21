@@ -34,6 +34,7 @@ public class Main extends Application {
         Button encryptBtn, decryptBtn;
         GridPane grid;
         FileChooser fileChooser;
+        Label hash1, hash2, exceptionLabel;
 
         grid = new GridPane();
         encryptBtn = new Button("Encrypt file");
