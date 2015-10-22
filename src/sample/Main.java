@@ -9,15 +9,19 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.scene.layout.HBox;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.awt.*;
+import java.awt.Label;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -35,20 +39,26 @@ public class Main extends Application {
         GridPane grid;
         FileChooser fileChooser;
         Label hash1, hash2, exceptionLabel;
+        TextField keyInput;
+        HBox hbox;
+
 
         grid = new GridPane();
         encryptBtn = new Button("Encrypt file");
         decryptBtn = new Button("Decrypt file");
+        keyInput = new TextField();
+        keyInput.setPromptText("Type key to encrypt file");
         fileChooser = new FileChooser();
         fileChooser.setTitle("Open file to encrypt");
+        hbox = new HBox(10, encryptBtn, decryptBtn);
 
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(20);
         grid.setVgap(20);
         grid.setPadding(new Insets(20, 20, 10, 20));
 
-        grid.add(encryptBtn, 0, 0);
-        grid.add(decryptBtn, 0, 1);
+        grid.add(hbox, 0, 1);
+        grid.add(keyInput, 0, 0);
 
         primaryStage.setScene(new Scene(grid, 300, 275));
         primaryStage.show();
