@@ -50,19 +50,19 @@ public class Encrypt{
             FileOutputStream outputStream = new FileOutputStream(outputFile);
             outputStream.write(outputBytes);
 
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            try (InputStream is = Files.newInputStream(Paths.get(inputFile.getAbsolutePath()))){
-                DigestInputStream dis = new DigestInputStream(is, md);
-            }
-
-            byte[] digest = md.digest();
-
-            StringBuffer sb = new StringBuffer("");
-            for (int i = 0; i < digest.length; i++) {
-                sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-            }
-
-                System.out.println(sb.toString());
+//            MessageDigest md = MessageDigest.getInstance("MD5");
+//            try (InputStream is = Files.newInputStream(Paths.get(inputFile.getAbsolutePath()))){
+//                DigestInputStream dis = new DigestInputStream(is, md);
+//            }
+//
+//            byte[] digest = md.digest();
+//
+//            StringBuffer sb = new StringBuffer("");
+//            for (int i = 0; i < digest.length; i++) {
+//                sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+//            }
+//
+//                System.out.println(sb.toString()+inputFile.getName());
 
             inputStream.close();
             outputStream.close();
@@ -74,5 +74,22 @@ public class Encrypt{
         }
     }
 
+    public static String hashComparator(File inputFile) throws Exception{
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        try (InputStream is = Files.newInputStream(Paths.get(inputFile.getAbsolutePath()))) {
+            DigestInputStream dis = new DigestInputStream(is, md);
+        }
+
+        byte[] digest = md.digest();
+
+        StringBuffer sb = new StringBuffer("");
+        for (int i = 0; i < digest.length; i++) {
+            sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
+        }
+
+        System.out.println(sb.toString() + inputFile.getName());
+
+        return sb.toString();
+    }
 
 }

@@ -20,10 +20,12 @@ import javafx.scene.layout.HBox;
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.awt.*;
 import java.awt.Label;
 import java.io.File;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,7 +66,7 @@ public class Main extends Application {
         primaryStage.show();
 
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        SecretKey key = keyGenerator.generateKey();
+        //SecretKey key;// = keyGenerator.generateKey();
         Cipher cipher = Cipher.getInstance("AES");
 
         encryptBtn.setOnAction(new EventHandler<ActionEvent>() {
@@ -72,11 +74,15 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 String inputFilePath;
                 String outputFilePath;
+                String stringKey = keyInput.getText();
+                byte[] decodedKey = Base64.getDecoder().decode(stringKey);
+                SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
                 File file = fileChooser.showOpenDialog(primaryStage);
                 inputFilePath = file.getAbsolutePath();
 
                 try {
                     Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
+                    Encrypt.hashComparator(file);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -89,6 +95,9 @@ public class Main extends Application {
             public void handle(ActionEvent event) {
                 String inputFilePath;
                 String outputFilePath;
+                String stringKey = keyInput.getText();
+                byte[] decodedKey = Base64.getDecoder().decode(stringKey);
+                SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
                 File file = fileChooser.showOpenDialog(primaryStage);
                 inputFilePath = file.getAbsolutePath();
 
