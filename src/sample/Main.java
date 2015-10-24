@@ -2,6 +2,8 @@ package sample;
 
 import encryption.Encrypt;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -27,7 +29,9 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import javafx.scene.text.Font;
 import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -58,9 +62,16 @@ public class Main extends Application {
         keyInput.setPromptText("Type key to encrypt/decrypt file");
         fileChooser = new FileChooser();
         fileChooser.setTitle("Open file to encrypt");
-        hbox = new HBox(40, encryptBtn, decryptBtn);
+        hbox = new HBox(20, encryptBtn, decryptBtn);
         timeLabel = new Label();
         pathLabel = new Label();
+        pathLabel.setMinWidth(300);
+        timeLabel.setFont(new Font("Georgia", 14));
+        pathLabel.setFont(new Font("Georgia", 14));
+        encryptBtn.setDisable(true);
+        decryptBtn.setDisable(true);
+        pathLabel.setText("You have to choose file");
+
 
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(30);
@@ -70,10 +81,10 @@ public class Main extends Application {
         grid.add(hbox, 0, 1);
         grid.add(chooseFileBtn, 1, 0);
         grid.add(keyInput, 0, 0);
-        grid.add(timeLabel, 0, 2);
-        grid.add(pathLabel, 0, 3);
+        grid.add(timeLabel, 0, 3);
+        grid.add(pathLabel, 0, 2);
 
-        primaryStage.setScene(new Scene(grid, 400, 350));
+        primaryStage.setScene(new Scene(grid, 500, 400));
         primaryStage.show();
 
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
@@ -81,36 +92,38 @@ public class Main extends Application {
 
         chooseFileBtn.setOnAction(event -> {
             file[0] = fileChooser.showOpenDialog(primaryStage);
-            pathLabel.setText("File: "+ file[0].getAbsolutePath());
+            pathLabel.setText("File: " + file[0].getAbsolutePath());
+            if(file[0]!=null){
+                encryptBtn.setDisable(false);
+                decryptBtn.setDisable(false);
+            }
         });
+
 
         encryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 long startTime = System.currentTimeMillis();
-                init("encrypt", primaryStage, file[0], keyInput);
-                long finishTime = System.currentTimeMillis() - startTime;
-                timeLabel.setText("Execution time: " + String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes(finishTime),
-                        TimeUnit.MILLISECONDS.toSeconds(finishTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(finishTime))
-                ) + " seconds");
+                init("encrypt",primaryStage, file[0], keyInput);
+                timeLabel.setText("Execution time (mm:ss:sss): "+getExecutionTime(startTime)+ " seconds");
             }
         });
-
         decryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 long startTime = System.currentTimeMillis();
                 init("decrypt",primaryStage, file[0], keyInput);
-                long finishTime = System.currentTimeMillis()-startTime;
-                timeLabel.setText("Execution time: " + String.format("%d min, %d sec",
-                        TimeUnit.MILLISECONDS.toMinutes(finishTime),
-                        TimeUnit.MILLISECONDS.toSeconds(finishTime) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(finishTime))
-                ) + " seconds");
+                timeLabel.setText("Execution time (mm:ss:sss): "+getExecutionTime(startTime)+ " seconds");
+
             }
         });
+    }
+
+    private String getExecutionTime(long startTime){
+        long finishTime = System.currentTimeMillis()-startTime;
+        SimpleDateFormat format = new SimpleDateFormat("mm:ss:sss");
+        String str = format.format(finishTime);
+        return str;
     }
 
     private void init(String mode, Stage primaryStage, File file, TextField keyInput){
