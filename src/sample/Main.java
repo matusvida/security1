@@ -11,6 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
@@ -22,11 +23,14 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.awt.*;
-import java.awt.Label;
 import java.io.File;
 import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,82 +38,108 @@ public class Main extends Application {
 
     private Desktop desktop = Desktop.getDesktop();
 
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Encrypt/Decrypt tool");
-        Button encryptBtn, decryptBtn;
+        Button encryptBtn, decryptBtn, chooseFileBtn;
         GridPane grid;
         FileChooser fileChooser;
-        Label hash1, hash2, exceptionLabel;
+        Label hash1, hash2, exceptionLabel, timeLabel, pathLabel;
         TextField keyInput;
         HBox hbox;
-
+        final File[] file = new File[1];
 
         grid = new GridPane();
         encryptBtn = new Button("Encrypt file");
         decryptBtn = new Button("Decrypt file");
+        chooseFileBtn = new Button("Choose File");
         keyInput = new TextField();
-        keyInput.setPromptText("Type key to encrypt file");
+        keyInput.setPromptText("Type key to encrypt/decrypt file");
         fileChooser = new FileChooser();
         fileChooser.setTitle("Open file to encrypt");
-        hbox = new HBox(10, encryptBtn, decryptBtn);
+        hbox = new HBox(40, encryptBtn, decryptBtn);
+        timeLabel = new Label();
+        pathLabel = new Label();
 
         grid.setAlignment(Pos.CENTER);
-        grid.setHgap(20);
-        grid.setVgap(20);
-        grid.setPadding(new Insets(20, 20, 10, 20));
+        grid.setHgap(30);
+        grid.setVgap(30);
+        grid.setPadding(new Insets(30, 30, 15, 30));
 
         grid.add(hbox, 0, 1);
+        grid.add(chooseFileBtn, 1, 0);
         grid.add(keyInput, 0, 0);
+        grid.add(timeLabel, 0, 2);
+        grid.add(pathLabel, 0, 3);
 
-        primaryStage.setScene(new Scene(grid, 300, 275));
+        primaryStage.setScene(new Scene(grid, 400, 350));
         primaryStage.show();
 
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
-        //SecretKey key;// = keyGenerator.generateKey();
         Cipher cipher = Cipher.getInstance("AES");
+
+        chooseFileBtn.setOnAction(event -> {
+            file[0] = fileChooser.showOpenDialog(primaryStage);
+            pathLabel.setText("File: "+ file[0].getAbsolutePath());
+        });
 
         encryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                String inputFilePath;
-                String outputFilePath;
-                String stringKey = keyInput.getText();
-                byte[] decodedKey = Base64.getDecoder().decode(stringKey);
-                SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-                File file = fileChooser.showOpenDialog(primaryStage);
-                inputFilePath = file.getAbsolutePath();
-
-                try {
-                    Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
-                    Encrypt.hashComparator(file);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+                long startTime = System.currentTimeMillis();
+                init("encrypt", primaryStage, file[0], keyInput);
+                long finishTime = System.currentTimeMillis() - startTime;
+                timeLabel.setText("Execution time: " + String.format("%d min, %d sec",
+                        TimeUnit.MILLISECONDS.toMinutes(finishTime),
+                        TimeUnit.MILLISECONDS.toSeconds(finishTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(finishTime))
+                ) + " seconds");
             }
         });
 
         decryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                String inputFilePath;
-                String outputFilePath;
-                String stringKey = keyInput.getText();
-                byte[] decodedKey = Base64.getDecoder().decode(stringKey);
-                SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-                File file = fileChooser.showOpenDialog(primaryStage);
-                inputFilePath = file.getAbsolutePath();
-
-                try {
-                    Encrypt.encrypt(Cipher.DECRYPT_MODE, file, key);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                long startTime = System.currentTimeMillis();
+                init("decrypt",primaryStage, file[0], keyInput);
+                long finishTime = System.currentTimeMillis()-startTime;
+                timeLabel.setText("Execution time: " + String.format("%d min, %d sec",
+                        TimeUnit.MILLISECONDS.toMinutes(finishTime),
+                        TimeUnit.MILLISECONDS.toSeconds(finishTime) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(finishTime))
+                ) + " seconds");
             }
         });
     }
 
+    private void init(String mode, Stage primaryStage, File file, TextField keyInput){
+        String inputFilePath;
+        String outputFilePath;
+        String stringKey = keyInput.getText();
+        MessageDigest sha;
+
+        try {
+            sha = MessageDigest.getInstance("SHA-1");
+            byte[] decodedKey = stringKey.getBytes();
+            decodedKey = sha.digest(decodedKey);
+            decodedKey = Arrays.copyOf(decodedKey, 16);
+            SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
+            //inputFilePath = file.getAbsolutePath();
+            if(mode == "encrypt"){
+                Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
+            }
+            else if(mode == "decrypt"){
+                Encrypt.encrypt(Cipher.DECRYPT_MODE, file, key);
+            }
+
+            Encrypt.hashComparator(file);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         launch(args);
