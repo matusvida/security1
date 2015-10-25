@@ -2,29 +2,25 @@ package sample;
 
 import encryption.Encrypt;
 import javafx.application.Application;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
+import javafx.geometry.Pos;;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.*;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.scene.layout.HBox;
-
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -40,7 +36,7 @@ import java.util.logging.Logger;
 
 public class Main extends Application {
 
-    private Desktop desktop = Desktop.getDesktop();
+//    private Desktop desktop = Desktop.getDesktop();
 
 
     @Override
@@ -49,7 +45,7 @@ public class Main extends Application {
         Button encryptBtn, decryptBtn, chooseFileBtn;
         GridPane grid;
         FileChooser fileChooser;
-        Label hash1, hash2, exceptionLabel, timeLabel, pathLabel;
+        Label hashEncrypted, hashDecrypted, descriptionLabel, timeLabel, pathLabel;
         TextField keyInput;
         HBox hbox;
         final File[] file = new File[1];
@@ -68,6 +64,13 @@ public class Main extends Application {
         pathLabel.setMinWidth(300);
         timeLabel.setFont(new Font("Georgia", 14));
         pathLabel.setFont(new Font("Georgia", 14));
+        hashEncrypted = new Label();
+        hashDecrypted = new Label();
+        descriptionLabel = new Label("Welcome to encryption/decryption tool! After choosing file, it will be encrypt by " +
+                "selected key. If you don't write your own, application will generate random key, but after close application" +
+                "you won't be able do decrypt file. Remember that!");
+        hashEncrypted.setFont(new Font("Georgia", 12));
+        hashDecrypted.setFont(new Font("Georgia", 12));
         encryptBtn.setDisable(true);
         decryptBtn.setDisable(true);
         pathLabel.setText("You have to choose file");
@@ -78,11 +81,14 @@ public class Main extends Application {
         grid.setVgap(30);
         grid.setPadding(new Insets(30, 30, 15, 30));
 
-        grid.add(hbox, 0, 1);
-        grid.add(chooseFileBtn, 1, 0);
-        grid.add(keyInput, 0, 0);
-        grid.add(timeLabel, 0, 3);
+        grid.add(hbox, 0, 3);
+        grid.add(chooseFileBtn, 1, 1);
+        grid.add(keyInput, 0, 1);
+        grid.add(timeLabel, 0, 4);
         grid.add(pathLabel, 0, 2);
+        grid.add(descriptionLabel, 0, 0);
+        grid.add(hashEncrypted, 0, 5);
+        grid.add(hashDecrypted, 0, 6);
 
         primaryStage.setScene(new Scene(grid, 500, 400));
         primaryStage.show();
@@ -93,7 +99,7 @@ public class Main extends Application {
         chooseFileBtn.setOnAction(event -> {
             file[0] = fileChooser.showOpenDialog(primaryStage);
             pathLabel.setText("File: " + file[0].getAbsolutePath());
-            if(file[0]!=null){
+            if (file[0] != null) {
                 encryptBtn.setDisable(false);
                 decryptBtn.setDisable(false);
             }
@@ -104,17 +110,16 @@ public class Main extends Application {
             @Override
             public void handle(ActionEvent event) {
                 long startTime = System.currentTimeMillis();
-                init("encrypt",primaryStage, file[0], keyInput);
-                timeLabel.setText("Execution time (mm:ss:sss): "+getExecutionTime(startTime)+ " seconds");
+                init("encrypt", primaryStage, file[0], keyInput, hashEncrypted, hashDecrypted);
+                timeLabel.setText("Execution time (mm:ss:sss): " + getExecutionTime(startTime) + " seconds");
             }
         });
         decryptBtn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 long startTime = System.currentTimeMillis();
-                init("decrypt",primaryStage, file[0], keyInput);
+                init("decrypt", primaryStage, file[0], keyInput, hashEncrypted, hashDecrypted);
                 timeLabel.setText("Execution time (mm:ss:sss): "+getExecutionTime(startTime)+ " seconds");
-
             }
         });
     }
@@ -126,11 +131,11 @@ public class Main extends Application {
         return str;
     }
 
-    private void init(String mode, Stage primaryStage, File file, TextField keyInput){
-        String inputFilePath;
-        String outputFilePath;
+    private void init(String mode, Stage primaryStage, File file, TextField keyInput, Label hashEncrypted, Label hashDecrypted){
         String stringKey = keyInput.getText();
         MessageDigest sha;
+        File outputFile;
+        String hash1, hash2;
 
         try {
             sha = MessageDigest.getInstance("SHA-1");
@@ -140,15 +145,15 @@ public class Main extends Application {
             SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
             //inputFilePath = file.getAbsolutePath();
             if(mode == "encrypt"){
-                Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
+                hash1 = Encrypt.hashComparator(file);
+                hashEncrypted.setText("Hash of selected file: "+hash1);
+                outputFile = Encrypt.encrypt(Cipher.ENCRYPT_MODE, file, key);
             }
             else if(mode == "decrypt"){
-                Encrypt.encrypt(Cipher.DECRYPT_MODE, file, key);
+                outputFile = Encrypt.encrypt(Cipher.DECRYPT_MODE, file, key);
+                hash2 = Encrypt.hashComparator(outputFile);
+                hashDecrypted.setText("Hash of selected file: "+hash2);
             }
-
-            Encrypt.hashComparator(file);
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }

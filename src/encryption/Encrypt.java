@@ -19,9 +19,9 @@ public class Encrypt{
 
     }
 
-    public static void encrypt(int cipherMode, File inputFile, SecretKey key) throws Exception{
+    public static File encrypt(int cipherMode, File inputFile, SecretKey key) throws Exception{
 
-        try {
+
             String outputFileName;
             Cipher cipher = Cipher.getInstance("AES");
             if(cipherMode == Cipher.ENCRYPT_MODE) {
@@ -32,18 +32,12 @@ public class Encrypt{
             }
 
             File outputFile = new File(inputFile.getAbsolutePath().substring(0,inputFile.getAbsolutePath().length()-inputFile.getName().length())+outputFileName);
-
+        try {
             cipher.init(cipherMode, key);
-
-            System.out.println(key);
 
             FileInputStream inFile = new FileInputStream(inputFile);
             FileOutputStream outFile = new FileOutputStream(outputFile);
             AlgorithmParameters params = cipher.getParameters();
-            FileOutputStream ivOutFile = new FileOutputStream("iv.enc");
-            //byte[] iv = params.getParameterSpec(IvParameterSpec.class).getIV();
-            //ivOutFile.write(iv);
-            ivOutFile.close();
 
             //file encryption
             byte[] input = new byte[64];
@@ -63,30 +57,34 @@ public class Encrypt{
             outFile.flush();
             outFile.close();
 
+
+
         }catch (Exception e){
                 System.out.println("Exception");
                 e.printStackTrace();
         }
-
+        return outputFile;
     }
 
-
-    public static String hashComparator(File inputFile) throws Exception{
+    public static String hashComparator(File file) throws Exception{
         MessageDigest md = MessageDigest.getInstance("MD5");
-        try (InputStream is = Files.newInputStream(Paths.get(inputFile.getAbsolutePath()))) {
-            DigestInputStream dis = new DigestInputStream(is, md);
+        System.out.println(file.getAbsolutePath()+"<<<<<<<");
+        FileInputStream fis = new FileInputStream(file.getAbsolutePath());
+
+        byte[] dataBytes = new byte[1024];
+        int nread = 0;
+        while ((nread = fis.read(dataBytes)) != -1) {
+            md.update(dataBytes, 0, nread);
+        };
+        byte[] mdbytes = md.digest();
+
+        StringBuffer hexString = new StringBuffer();
+        for (int i=0;i<mdbytes.length;i++) {
+            String hex=Integer.toHexString(0xff & mdbytes[i]);
+            if(hex.length()==1) hexString.append('0');
+            hexString.append(hex);
         }
-
-        byte[] digest = md.digest();
-
-        StringBuffer sb = new StringBuffer("");
-        for (int i = 0; i < digest.length; i++) {
-            sb.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-        }
-
-        System.out.println(sb.toString() + inputFile.getName());
-
-        return sb.toString();
+        return hexString.toString();
     }
 
 }
